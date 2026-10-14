@@ -148,3 +148,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 WHITENOISE_USE_FINDERS = True
+
+# Stateless signed cookie sessions for 100% serverless compatibility
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
