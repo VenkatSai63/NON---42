@@ -8,6 +8,12 @@ https://docs.djangoproject.com/en/2.1/howto/deployment/wsgi/
 """
 
 import os
+import sys
+
+# Ensure project directory is on sys.path for root-level Vercel execution
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
 from django.core.wsgi import get_wsgi_application
 

@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "Removing-Multiple-Votes-by-using-De-duplication-analysis-main/Deduplicate/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/Removing-Multiple-Votes-by-using-De-duplication-analysis-main/DeduplicateApp/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "Removing-Multiple-Votes-by-using-De-duplication-analysis-main/Deduplicate/wsgi.py"
+    }
+  ]
+}
