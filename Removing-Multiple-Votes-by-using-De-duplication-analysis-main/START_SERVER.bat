@@ -5,7 +5,7 @@ echo ============================================
 echo.
 cd /d "%~dp0"
 
-set "PY_CMD=python"
+set "PY_CMD=py -3.11"
 if exist "..\.venv\Scripts\python.exe" (
     set "PY_CMD=..\.venv\Scripts\python.exe"
 ) else if exist ".venv\Scripts\python.exe" (

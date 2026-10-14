@@ -6,10 +6,14 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 import os
 import pandas as pd
-import matplotlib
-# Use a non-GUI backend to avoid tkinter/thread issues under Django's reloader.
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    # Use a non-GUI backend to avoid tkinter/thread issues under Django's reloader.
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+except Exception:
+    plt = None
+
 import numpy as np
 import time
 
@@ -18,6 +22,13 @@ from .models import Register as RegisterModel
 global username, unique_df
 
 def _project_path(*parts):
+    if os.environ.get('VERCEL'):
+        import shutil
+        target = os.path.join('/tmp', *parts)
+        orig = os.path.join(settings.BASE_DIR, *parts)
+        if not os.path.exists(target) and os.path.exists(orig):
+            shutil.copy2(orig, target)
+        return target
     return os.path.join(settings.BASE_DIR, *parts)
 
 def ViewVotersAction(request):

@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
     'https://*.trycloudflare.com',
     'https://*.onrender.com',
     'https://*.appspot.com',
@@ -89,10 +90,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Deduplicate.wsgi.application'
 
 
+# Handle Vercel serverless read-only environment
+if os.environ.get('VERCEL'):
+    import shutil
+    tmp_db = '/tmp/db.sqlite3'
+    orig_db = os.path.join(BASE_DIR, 'db.sqlite3')
+    if os.path.exists(orig_db) and not os.path.exists(tmp_db):
+        shutil.copy2(orig_db, tmp_db)
+    db_name = tmp_db
+else:
+    db_name = os.path.join(BASE_DIR, 'db.sqlite3')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': db_name,
     }
 }
 
