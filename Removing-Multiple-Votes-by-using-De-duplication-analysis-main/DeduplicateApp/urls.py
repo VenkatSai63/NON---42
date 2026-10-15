@@ -14,5 +14,4 @@ urlpatterns = [path('', views.index, name="home"),
 	       path('AddNewVoterAction', views.AddNewVoterAction, name="AddNewVoterAction"),
 	       path('RemoveDuplicate', views.RemoveDuplicate, name="RemoveDuplicate"),
 	       path('Download', views.Download, name="Download"),
-	       path('ResetDataset', views.ResetDataset, name="ResetDataset"),
 ]
