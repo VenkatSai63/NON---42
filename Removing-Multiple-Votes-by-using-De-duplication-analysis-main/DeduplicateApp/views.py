@@ -69,9 +69,6 @@ def ViewVotersAction(request):
     if request.method == 'POST':
         voter_id = str(request.POST.get('t1', '')).strip().upper()
         dataset = pd.read_excel(_project_path('DataVoter.xlsx'), engine="openpyxl")
-        added_voters = request.session.get('added_voters', [])
-        if added_voters:
-            dataset = pd.concat([dataset, pd.DataFrame(added_voters)], ignore_index=True)
 
         voter_col = 'VoterId' if 'VoterId' in dataset.columns else ('Voter ID' if 'Voter ID' in dataset.columns else '')
         father_col = 'Father_Husband' if 'Father_Husband' in dataset.columns else ('Father/Husband' if 'Father/Husband' in dataset.columns else '')
@@ -112,13 +109,8 @@ def Download(request):
 def RemoveDuplicate(request):
     global unique_df
     dataset = pd.read_excel(_project_path('DataVoter.xlsx'), engine="openpyxl")
-
-    # Include newly added voters from session
-    added_voters = request.session.get('added_voters', [])
-    if added_voters:
-        dataset = pd.concat([dataset, pd.DataFrame(added_voters)], ignore_index=True)
-
     total_records = dataset.shape[0]
+
     indices_to_keep, duplicate_indices = _find_duplicates(dataset)
     duplicate_count = len(duplicate_indices)
 
@@ -128,10 +120,6 @@ def RemoveDuplicate(request):
     # Save cleaned data to DataVoter.xlsx & unique.xlsx
     unique_df.to_excel(_project_path("DataVoter.xlsx"), index=False)
     unique_df.to_excel(_project_path("unique.xlsx"), index=False)
-
-    # Reset session added_voters
-    request.session['added_voters'] = []
-    request.session.modified = True
 
     output = f"""
     <br/>
@@ -178,35 +166,52 @@ def AddNewVoterAction(request):
             aadhar_col: aadhar
         }
 
-        # Append to dataset & save
+        # Append EXACTLY ONCE to DataVoter.xlsx
         dataset = pd.concat([dataset, pd.DataFrame([new_rec])], ignore_index=True)
         try:
             dataset.to_excel(_project_path('DataVoter.xlsx'), index=False)
         except Exception:
             pass
 
-        # Also store in session
-        added_voters = request.session.get('added_voters', [])
-        added_voters.append(new_rec)
-        request.session['added_voters'] = added_voters
-        request.session.modified = True
-
         # Calculate duplicate count across the dataset
         _, duplicate_indices = _find_duplicates(dataset)
         dup_count = len(duplicate_indices)
 
+        details_table = f"""
+        <table border="1" align="center" style="margin:10px auto; border-collapse:collapse; font-size:14px; font-family:Georgia, serif; text-align:center;">
+            <tr style="background:#f2f2f2;">
+                <th style="padding:4px 8px;">Name</th>
+                <th style="padding:4px 8px;">Father/Husband</th>
+                <th style="padding:4px 8px;">Age</th>
+                <th style="padding:4px 8px;">Gender</th>
+                <th style="padding:4px 8px;">Voter ID</th>
+                <th style="padding:4px 8px;">Aadhar No</th>
+            </tr>
+            <tr>
+                <td style="padding:4px 8px;">{name}</td>
+                <td style="padding:4px 8px;">{father}</td>
+                <td style="padding:4px 8px;">{age}</td>
+                <td style="padding:4px 8px;">{gender}</td>
+                <td style="padding:4px 8px;"><b>{voter}</b></td>
+                <td style="padding:4px 8px;"><b>{aadhar}</b></td>
+            </tr>
+        </table>
+        """
+
         if dup_count > 0:
             msg = f"""
             <br/>
-            <font size="" color="blue"><center>New record added to existing DataVoter.xlsx</center></font><br/>
+            <font size="" color="blue"><center>New record added to existing DataVoter.xlsx</center></font>
+            {details_table}
             <font size="4" color="red"><center><b>Duplicate found : {dup_count}</b></center></font><br/>
-            <font size="3" color="black"><center>Matching Voter ID or Aadhar Number already exists in records!</center></font><br/>
+            <font size="3" color="black"><center>Matching Voter ID ({voter}) or Aadhar ({aadhar}) already exists in records!</center></font><br/>
             <font size="2" color="black"><center>Click <b>'Remove Duplicate Data'</b> in the menu above to remove duplicates and return as 0.</center></font>
             """
         else:
             msg = f"""
             <br/>
-            <font size="" color="blue"><center>New record added to existing DataVoter.xlsx</center></font><br/>
+            <font size="" color="blue"><center>New record added to existing DataVoter.xlsx</center></font>
+            {details_table}
             <font size="3" color="green"><center><b>Duplicate found : 0 (Valid Unique Record)</b></center></font>
             """
 
